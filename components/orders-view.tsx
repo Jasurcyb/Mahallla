@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CategoryBadge } from '@/components/category-badge'
 import { formatUZS } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { Order, OrderStatus } from '@/types'
+import type { TranslationKey } from '@/lib/translations'
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
@@ -19,12 +21,12 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
   cancelled: 'bg-destructive/10 text-destructive',
 }
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  in_progress: 'In progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+const STATUS_KEYS: Record<OrderStatus, TranslationKey> = {
+  pending: 'status.pending',
+  confirmed: 'status.confirmed',
+  in_progress: 'status.in_progress',
+  completed: 'status.completed',
+  cancelled: 'status.cancelled',
 }
 
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
@@ -34,6 +36,7 @@ const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
 }
 
 export function OrdersView() {
+  const { t } = useLanguage()
   const { data, isLoading, mutate } = useSWR<{ orders: Order[] }>(
     '/api/orders',
     fetcher,
@@ -67,13 +70,13 @@ export function OrdersView() {
           <Package aria-hidden="true" />
         </span>
         <div>
-          <p className="font-medium text-foreground">No orders yet</p>
+          <p className="font-medium text-foreground">{t('orders.noOrders')}</p>
           <p className="text-sm text-muted-foreground">
-            Browse your mahalla and place your first order.
+            {t('orders.noOrdersSubtitle')}
           </p>
         </div>
         <Button nativeButton={false} render={<Link href="/browse" />}>
-          Browse services
+          {t('orders.browseServices')}
         </Button>
       </div>
     )
@@ -91,7 +94,7 @@ export function OrdersView() {
               <div className="flex items-center gap-2">
                 <CategoryBadge category={order.category} />
                 <Badge className={STATUS_STYLES[order.status]}>
-                  {STATUS_LABELS[order.status]}
+                  {t(STATUS_KEYS[order.status])}
                 </Badge>
               </div>
               <Link
@@ -101,7 +104,7 @@ export function OrdersView() {
                 {order.serviceTitle}
               </Link>
               <p className="text-sm text-muted-foreground">
-                Provider: {order.providerName} · Qty {order.quantity}
+                {t('orders.provider')}: {order.providerName} · {t('orders.qty')} {order.quantity}
               </p>
               {(order.scheduledDate || order.scheduledTime) && (
                 <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -121,7 +124,7 @@ export function OrdersView() {
                   className="mt-2"
                   onClick={() => advance(order)}
                 >
-                  Mark {STATUS_LABELS[NEXT_STATUS[order.status]!].toLowerCase()}
+                  {t('orders.mark')} {t(STATUS_KEYS[NEXT_STATUS[order.status]!]).toLowerCase()}
                 </Button>
               )}
             </div>

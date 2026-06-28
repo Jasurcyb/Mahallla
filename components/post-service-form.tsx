@@ -15,13 +15,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { AIPriceSuggester } from '@/components/AIPriceSuggester'
-import { CATEGORIES } from '@/lib/categories'
+import { CATEGORIES, getCategoryLabel } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { Category, PriceUnit } from '@/types'
 
 const CITIES = ['Toshkent', 'Samarqand', 'Buxoro', 'Andijon', 'Fargʻona']
 
 export function PostServiceForm() {
   const router = useRouter()
+  const { locale, t } = useLanguage()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<Category>('food')
@@ -65,10 +67,10 @@ export function PostServiceForm() {
           <PartyPopper width={28} height={28} aria-hidden="true" />
         </span>
         <h2 className="font-heading text-2xl font-semibold text-foreground">
-          Your service is live!
+          {t('post.success.title')}
         </h2>
         <p className="text-muted-foreground">
-          Your neighbors can now find and book it. Taking you there...
+          {t('post.success.subtitle')}
         </p>
       </div>
     )
@@ -77,18 +79,18 @@ export function PostServiceForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="title">Service title</Label>
+        <Label htmlFor="title">{t('post.serviceTitle')}</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Home-cooked plov, delivered warm"
+          placeholder={t('post.serviceTitlePlaceholder')}
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
+        <Label htmlFor="category">{t('post.category')}</Label>
         <Select
           value={category}
           onValueChange={(v) => setCategory(v as Category)}
@@ -99,7 +101,7 @@ export function PostServiceForm() {
           <SelectContent>
             {CATEGORIES.map((c) => (
               <SelectItem key={c.id} value={c.id}>
-                {c.label} · {c.labelUz}
+                {getCategoryLabel(c, locale)} · {c.labelUz}
               </SelectItem>
             ))}
           </SelectContent>
@@ -107,12 +109,12 @@ export function PostServiceForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t('post.description')}</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe what you offer, portion sizes, what makes it special..."
+          placeholder={t('post.descriptionPlaceholder')}
           rows={4}
           required
         />
@@ -120,7 +122,7 @@ export function PostServiceForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="city">City</Label>
+          <Label htmlFor="city">{t('post.city')}</Label>
           <Select value={city} onValueChange={(v) => setCity(v ?? 'Toshkent')}>
             <SelectTrigger id="city">
               <SelectValue />
@@ -135,12 +137,12 @@ export function PostServiceForm() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="location">Neighborhood (mahalla)</Label>
+          <Label htmlFor="location">{t('post.neighborhood')}</Label>
           <Input
             id="location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g. Chilonzor 9-kvartal"
+            placeholder={t('post.neighborhoodPlaceholder')}
             required
           />
         </div>
@@ -148,7 +150,7 @@ export function PostServiceForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="price">Price (UZS)</Label>
+          <Label htmlFor="price">{t('post.price')}</Label>
           <Input
             id="price"
             type="number"
@@ -160,7 +162,7 @@ export function PostServiceForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="priceUnit">Price unit</Label>
+          <Label htmlFor="priceUnit">{t('post.priceUnit')}</Label>
           <Select
             value={priceUnit}
             onValueChange={(v) => setPriceUnit(v as PriceUnit)}
@@ -169,9 +171,9 @@ export function PostServiceForm() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="fixed">Fixed price</SelectItem>
-              <SelectItem value="per_item">Per item</SelectItem>
-              <SelectItem value="per_hour">Per hour</SelectItem>
+              <SelectItem value="fixed">{t('post.fixedPrice')}</SelectItem>
+              <SelectItem value="per_item">{t('post.perItem')}</SelectItem>
+              <SelectItem value="per_hour">{t('post.perHour')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -187,7 +189,7 @@ export function PostServiceForm() {
         {submitting && (
           <Loader2 width={18} height={18} className="animate-spin" aria-hidden="true" />
         )}
-        Publish service
+        {t('post.publish')}
       </Button>
     </form>
   )

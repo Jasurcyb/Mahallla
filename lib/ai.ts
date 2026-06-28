@@ -209,8 +209,13 @@ async function callGemini(prompt: string): Promise<string | null> {
     }
 
     const data = await res.json()
-    const text: string | undefined =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text
+    // Reasoning models (e.g. gemma-4) return multiple parts: a thought
+    // block (thought: true) followed by the actual response. We must
+    // skip the thought part and extract the real answer.
+    const parts: Array<{ text?: string; thought?: boolean }> =
+      data?.candidates?.[0]?.content?.parts ?? []
+    const responsePart = parts.find((p) => !p.thought)
+    const text = responsePart?.text ?? parts[0]?.text
     return text ?? null
   } catch (err) {
     console.warn('AI request encountered an error')

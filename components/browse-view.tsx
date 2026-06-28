@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ServiceCard } from '@/components/ServiceCard'
-import { CATEGORIES } from '@/lib/categories'
+import { CATEGORIES, getCategoryLabel } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { Category, Service } from '@/types'
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -27,6 +28,7 @@ interface BrowseViewProps {
 }
 
 export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
+  const { locale, t } = useLanguage()
   const { data, isLoading } = useSWR<{ services: Service[] }>(
     '/api/services',
     fetcher,
@@ -71,10 +73,10 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6">
         <h1 className="font-heading text-3xl font-bold text-foreground">
-          Browse services
+          {t('browse.title')}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Find trusted neighbors offering what you need.
+          {t('browse.subtitle')}
         </p>
       </div>
 
@@ -88,8 +90,8 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search services or providers..."
-          aria-label="Search services"
+          placeholder={t('browse.searchPlaceholder')}
+          aria-label={t('browse.title')}
           className="pl-10"
         />
       </div>
@@ -99,12 +101,12 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
         <aside className="h-fit rounded-xl border border-border bg-card p-5">
           <div className="mb-4 flex items-center gap-2 text-foreground">
             <SlidersHorizontal width={16} height={16} aria-hidden="true" />
-            <h2 className="font-medium">Filters</h2>
+            <h2 className="font-medium">{t('browse.filters')}</h2>
           </div>
 
           <div className="space-y-5">
             <div>
-              <Label className="mb-2 block">Category</Label>
+              <Label className="mb-2 block">{t('browse.category')}</Label>
               <Select
                 value={category}
                 onValueChange={(v) => setCategory(v as Category | 'all')}
@@ -113,10 +115,10 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="all">{t('browse.allCategories')}</SelectItem>
                   {CATEGORIES.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.label}
+                      {getCategoryLabel(c, locale)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -125,7 +127,7 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
 
             <div>
               <Label className="mb-2 block">
-                Max price: {new Intl.NumberFormat('en-US').format(maxPrice)} UZS
+                {t('browse.maxPrice')}: {new Intl.NumberFormat('en-US').format(maxPrice)} UZS
               </Label>
               <Slider
                 value={[maxPrice]}
@@ -139,7 +141,7 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
             </div>
 
             <div>
-              <Label className="mb-2 block">Minimum rating</Label>
+              <Label className="mb-2 block">{t('browse.minRating')}</Label>
               <Select
                 value={minRating}
                 onValueChange={(v) => setMinRating(v ?? '0')}
@@ -148,7 +150,7 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">Any rating</SelectItem>
+                  <SelectItem value="0">{t('browse.anyRating')}</SelectItem>
                   <SelectItem value="4">4.0+</SelectItem>
                   <SelectItem value="4.5">4.5+</SelectItem>
                   <SelectItem value="4.8">4.8+</SelectItem>
@@ -157,7 +159,7 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
             </div>
 
             <div>
-              <Label className="mb-2 block">Distance</Label>
+              <Label className="mb-2 block">{t('browse.distance')}</Label>
               <Select
                 value={maxDistance}
                 onValueChange={(v) => setMaxDistance(v ?? '100')}
@@ -166,10 +168,10 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="100">Any distance</SelectItem>
-                  <SelectItem value="1">Within 1 km</SelectItem>
-                  <SelectItem value="2">Within 2 km</SelectItem>
-                  <SelectItem value="5">Within 5 km</SelectItem>
+                  <SelectItem value="100">{t('browse.anyDistance')}</SelectItem>
+                  <SelectItem value="1">{t('browse.within')} 1 km</SelectItem>
+                  <SelectItem value="2">{t('browse.within')} 2 km</SelectItem>
+                  <SelectItem value="5">{t('browse.within')} 5 km</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -185,7 +187,7 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
                 setQuery('')
               }}
             >
-              Reset filters
+              {t('browse.resetFilters')}
             </Button>
           </div>
         </aside>
@@ -194,17 +196,17 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
         <div>
           <div className="mb-4 flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              {filtered.length} {filtered.length === 1 ? 'service' : 'services'}
+              {filtered.length} {filtered.length === 1 ? t('browse.service') : t('browse.services')}
             </p>
             <Select value={sort} onValueChange={(v) => setSort(v ?? 'rating')}>
               <SelectTrigger className="w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rating">Top rated</SelectItem>
-                <SelectItem value="price_low">Price: low to high</SelectItem>
-                <SelectItem value="price_high">Price: high to low</SelectItem>
-                <SelectItem value="distance">Nearest</SelectItem>
+                <SelectItem value="rating">{t('browse.topRated')}</SelectItem>
+                <SelectItem value="price_low">{t('browse.priceLow')}</SelectItem>
+                <SelectItem value="price_high">{t('browse.priceHigh')}</SelectItem>
+                <SelectItem value="distance">{t('browse.nearest')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -221,7 +223,7 @@ export function BrowseView({ initialCategory = 'all' }: BrowseViewProps) {
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-border py-20 text-center text-muted-foreground">
-              No services match your filters.
+              {t('browse.noServices')}
             </div>
           )}
         </div>

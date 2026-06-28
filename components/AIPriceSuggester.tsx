@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Loader2, Sparkles, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatUZS } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { PriceSuggestion } from '@/types'
 
 interface AIPriceSuggesterProps {
@@ -17,13 +18,14 @@ export function AIPriceSuggester({
   city,
   onApply,
 }: AIPriceSuggesterProps) {
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PriceSuggestion | null>(null)
   const [error, setError] = useState('')
 
   async function handleSuggest() {
     if (!serviceType.trim()) {
-      setError('Enter a service type first to get a price suggestion.')
+      setError(t('aiPrice.enterFirst'))
       return
     }
     setLoading(true)
@@ -38,7 +40,7 @@ export function AIPriceSuggester({
       const data: PriceSuggestion = await res.json()
       setResult(data)
     } catch {
-      setError('Price suggestion is unavailable right now.')
+      setError(t('aiPrice.unavailable'))
     } finally {
       setLoading(false)
     }
@@ -53,10 +55,10 @@ export function AIPriceSuggester({
           </span>
           <div>
             <p className="text-sm font-semibold text-foreground">
-              AI Price Suggester
+              {t('aiPrice.title')}
             </p>
             <p className="text-xs text-muted-foreground">
-              Get a fair price for your area
+              {t('aiPrice.subtitle')}
             </p>
           </div>
         </div>
@@ -72,7 +74,7 @@ export function AIPriceSuggester({
           ) : (
             <TrendingUp width={15} height={15} aria-hidden="true" />
           )}
-          Suggest
+          {t('aiPrice.suggest')}
         </Button>
       </div>
 
@@ -91,7 +93,7 @@ export function AIPriceSuggester({
               size="sm"
               onClick={() => onApply(result.suggested)}
             >
-              Use suggested {formatUZS(result.suggested)}
+              {t('aiPrice.useSuggested')} {formatUZS(result.suggested)}
             </Button>
           )}
         </div>

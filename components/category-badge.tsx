@@ -1,5 +1,8 @@
-import { getCategory } from '@/lib/categories'
+'use client'
+
+import { getCategory, getCategoryLabel } from '@/lib/categories'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/lib/language-context'
 import type { Category } from '@/types'
 
 interface CategoryBadgeProps {
@@ -8,6 +11,7 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category, className }: CategoryBadgeProps) {
+  const { locale } = useLanguage()
   const meta = getCategory(category)
   const Icon = meta.icon
   return (
@@ -18,7 +22,7 @@ export function CategoryBadge({ category, className }: CategoryBadgeProps) {
       )}
     >
       <Icon width={14} height={14} aria-hidden="true" />
-      {meta.label}
+      {getCategoryLabel(meta, locale)}
     </span>
   )
 }

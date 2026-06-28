@@ -1,33 +1,44 @@
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { ClipboardList, HandHeart, Search } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { AISearchBar } from '@/components/AISearchBar'
 import { ServiceCard } from '@/components/ServiceCard'
-import { CATEGORIES } from '@/lib/categories'
+import { CATEGORIES, getCategoryLabel } from '@/lib/categories'
 import { listServices } from '@/lib/dynamodb'
+import { getTranslator, type Locale } from '@/lib/translations'
 
-const STEPS = [
-  {
-    icon: Search,
-    title: 'Find a neighbor',
-    text: 'Search by category or describe your need. Smart matching connects you with trusted neighbors nearby.',
-  },
-  {
-    icon: ClipboardList,
-    title: 'Place your order',
-    text: 'Pick a date and time, add notes, and confirm. See a fair price before you commit.',
-  },
-  {
-    icon: HandHeart,
-    title: 'Enjoy & rate',
-    text: 'Receive your service, then leave a review to keep the mahalla strong and trustworthy.',
-  },
-]
+const VALID_LOCALES: Locale[] = ['en', 'ru', 'uz']
 
 export default async function HomePage() {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get('lang')?.value ?? 'ru'
+  const locale: Locale = VALID_LOCALES.includes(raw as Locale)
+    ? (raw as Locale)
+    : 'ru'
+  const t = getTranslator(locale)
+
   const services = await listServices()
   const featured = services.slice(0, 4)
+
+  const STEPS = [
+    {
+      icon: Search,
+      title: t('step.findNeighbor.title'),
+      text: t('step.findNeighbor.text'),
+    },
+    {
+      icon: ClipboardList,
+      title: t('step.placeOrder.title'),
+      text: t('step.placeOrder.text'),
+    },
+    {
+      icon: HandHeart,
+      title: t('step.enjoyRate.title'),
+      text: t('step.enjoyRate.text'),
+    },
+  ]
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -46,14 +57,13 @@ export default async function HomePage() {
           <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24">
             <div className="mx-auto max-w-3xl text-center">
               <span className="inline-flex items-center rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-sm font-medium text-foreground">
-                Hyperlocal neighborhood marketplace
+                {t('hero.badge')}
               </span>
               <h1 className="mt-5 text-balance font-heading text-4xl font-bold leading-tight text-foreground sm:text-6xl">
-                Your neighborhood, your community
+                {t('hero.title')}
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                Order home-cooked plov from your neighbor. Get laundry done. Find
-                help nearby.
+                {t('hero.subtitle')}
               </p>
               <div className="mx-auto mt-8 max-w-2xl">
                 <AISearchBar />
@@ -74,7 +84,7 @@ export default async function HomePage() {
                       <Icon width={22} height={22} aria-hidden="true" />
                     </span>
                     <span className="text-sm font-medium text-foreground">
-                      {cat.label}
+                      {getCategoryLabel(cat, locale)}
                     </span>
                   </Link>
                 )
@@ -87,10 +97,10 @@ export default async function HomePage() {
         <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-heading text-3xl font-bold text-foreground">
-              How it works
+              {t('howItWorks.title')}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Three simple steps to get help from people right around the corner.
+              {t('howItWorks.subtitle')}
             </p>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -125,17 +135,17 @@ export default async function HomePage() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h2 className="font-heading text-3xl font-bold text-foreground">
-                  Featured in your mahalla
+                  {t('featured.title')}
                 </h2>
                 <p className="mt-2 text-muted-foreground">
-                  Popular services from trusted neighbors.
+                  {t('featured.subtitle')}
                 </p>
               </div>
               <Link
                 href="/browse"
                 className="shrink-0 text-sm font-medium text-primary hover:underline"
               >
-                Browse all
+                {t('featured.browseAll')}
               </Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -151,16 +161,16 @@ export default async function HomePage() {
           <div className="grid gap-6 rounded-2xl bg-primary p-8 text-center text-primary-foreground sm:grid-cols-3 sm:p-12">
             <div>
               <p className="font-heading text-4xl font-bold">1,240</p>
-              <p className="mt-1 text-sm text-primary-foreground/80">neighbors</p>
+              <p className="mt-1 text-sm text-primary-foreground/80">{t('stats.neighbors')}</p>
             </div>
             <div>
               <p className="font-heading text-4xl font-bold">3</p>
-              <p className="mt-1 text-sm text-primary-foreground/80">cities</p>
+              <p className="mt-1 text-sm text-primary-foreground/80">{t('stats.cities')}</p>
             </div>
             <div>
               <p className="font-heading text-4xl font-bold">8,420</p>
               <p className="mt-1 text-sm text-primary-foreground/80">
-                tasks completed
+                {t('stats.tasksCompleted')}
               </p>
             </div>
           </div>

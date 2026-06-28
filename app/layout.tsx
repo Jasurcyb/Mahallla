@@ -1,7 +1,10 @@
+import { cookies } from 'next/headers'
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
+import { LanguageProvider } from '@/lib/language-context'
+import type { Locale } from '@/lib/translations'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -47,19 +50,30 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({
+const VALID_LOCALES: Locale[] = ['en', 'ru', 'uz']
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get('lang')?.value ?? 'ru'
+  const locale: Locale = VALID_LOCALES.includes(raw as Locale)
+    ? (raw as Locale)
+    : 'ru'
+
   return (
     <html
-      lang="en"
+      lang={locale}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} bg-background`}
     >
-      <body className="font-sans antialiased">
-        {children}
-        <Toaster />
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <LanguageProvider locale={locale}>
+          {children}
+          <Toaster />
+        </LanguageProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

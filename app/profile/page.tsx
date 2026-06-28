@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import Image from 'next/image'
 import { CheckCircle2, MapPin, Phone, Star } from 'lucide-react'
@@ -8,8 +9,18 @@ import { Badge } from '@/components/ui/badge'
 import { ServiceCard } from '@/components/ServiceCard'
 import { getUser, listOrders, listServices } from '@/lib/dynamodb'
 import { formatUZS } from '@/lib/categories'
+import { getTranslator, type Locale } from '@/lib/translations'
+
+const VALID_LOCALES: Locale[] = ['en', 'ru', 'uz']
 
 export default async function ProfilePage() {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get('lang')?.value ?? 'ru'
+  const locale: Locale = VALID_LOCALES.includes(raw as Locale)
+    ? (raw as Locale)
+    : 'ru'
+  const t = getTranslator(locale)
+
   const [user, orders, services] = await Promise.all([
     getUser(),
     listOrders(),
@@ -24,6 +35,8 @@ export default async function ProfilePage() {
   )
   const totalSpent = completed.reduce((sum, o) => sum + o.totalPrice, 0)
   const recommended = services.slice(0, 3)
+
+  const dateLocale = locale === 'ru' ? 'ru-RU' : locale === 'uz' ? 'uz-UZ' : 'en-US'
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -44,7 +57,7 @@ export default async function ProfilePage() {
               </h1>
               <Badge className="gap-1 bg-primary/10 text-primary">
                 <CheckCircle2 width={13} height={13} aria-hidden="true" />
-                Verified neighbor
+                {t('profile.verifiedNeighbor')}
               </Badge>
             </div>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground sm:justify-start">
@@ -67,8 +80,8 @@ export default async function ProfilePage() {
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Member since{' '}
-              {new Date(user.joinedAt).toLocaleDateString('en-US', {
+              {t('profile.memberSince')}{' '}
+              {new Date(user.joinedAt).toLocaleDateString(dateLocale, {
                 month: 'long',
                 year: 'numeric',
               })}
@@ -79,16 +92,16 @@ export default async function ProfilePage() {
             nativeButton={false}
             render={<Link href="/post" />}
           >
-            Become a provider
+            {t('profile.becomeProvider')}
           </Button>
         </section>
 
         <section className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Completed orders', value: completed.length },
-            { label: 'Active orders', value: active.length },
-            { label: 'Total spent', value: formatUZS(totalSpent) },
-            { label: 'Neighbor rating', value: user.rating.toFixed(1) },
+            { label: t('profile.completedOrders'), value: completed.length },
+            { label: t('profile.activeOrders'), value: active.length },
+            { label: t('profile.totalSpent'), value: formatUZS(totalSpent) },
+            { label: t('profile.neighborRating'), value: user.rating.toFixed(1) },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -105,13 +118,13 @@ export default async function ProfilePage() {
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-heading text-xl font-semibold text-foreground">
-              Recommended for you
+              {t('profile.recommended')}
             </h2>
             <Link
               href="/browse"
               className="text-sm font-medium text-primary hover:underline"
             >
-              See all
+              {t('profile.seeAll')}
             </Link>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

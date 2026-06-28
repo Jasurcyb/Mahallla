@@ -6,16 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ServiceCard } from '@/components/ServiceCard'
-import { getCategory } from '@/lib/categories'
+import { getCategory, getCategoryLabel } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { MatchResult } from '@/types'
 
-interface AISearchBarProps {
-  placeholder?: string
-}
-
-export function AISearchBar({
-  placeholder = 'Describe what you need... e.g. "мне нужен горячий обед сегодня"',
-}: AISearchBarProps) {
+export function AISearchBar() {
+  const { locale, t } = useLanguage()
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<MatchResult | null>(null)
@@ -41,7 +37,7 @@ export function AISearchBar({
       const data: MatchResult = await res.json()
       setResult(data)
     } catch {
-      setError('Sorry, smart matching is unavailable right now. Please try Browse.')
+      setError(t('search.error'))
     } finally {
       setLoading(false)
     }
@@ -67,8 +63,8 @@ export function AISearchBar({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={placeholder}
-            aria-label="Describe what you need"
+            placeholder={t('search.placeholder')}
+            aria-label={t('search.placeholder')}
             className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
           />
         </div>
@@ -78,7 +74,7 @@ export function AISearchBar({
           ) : (
             <Sparkles width={16} height={16} aria-hidden="true" />
           )}
-          Smart match
+          {t('search.button')}
         </Button>
       </form>
 
@@ -87,9 +83,9 @@ export function AISearchBar({
       {result && (
         <div className="mt-5">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-muted-foreground">We understood:</span>
-            <Badge variant="secondary">{getCategory(result.category).label}</Badge>
-            <Badge variant="outline">Urgency: {result.urgency}</Badge>
+            <span className="text-muted-foreground">{t('search.understood')}</span>
+            <Badge variant="secondary">{getCategoryLabel(getCategory(result.category), locale)}</Badge>
+            <Badge variant="outline">{t('search.urgency')}: {result.urgency}</Badge>
             {result.keywords.slice(0, 4).map((kw) => (
               <Badge key={kw} variant="outline">
                 {kw}
@@ -105,7 +101,7 @@ export function AISearchBar({
             </div>
           ) : (
             <p className="mt-4 text-sm text-muted-foreground">
-              No close matches found. Try browsing all services.
+              {t('search.noMatches')}
             </p>
           )}
         </div>

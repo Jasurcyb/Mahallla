@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -6,19 +8,22 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { CategoryBadge } from '@/components/category-badge'
 import { RatingStars } from '@/components/rating-stars'
 import { formatPrice } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { Service } from '@/types'
 
 export function ServiceCard({ service }: { service: Service }) {
+  const { locale, t } = useLanguage()
+
   return (
     <Card className="flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md">
       <CardContent className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-center justify-between gap-2">
           <CategoryBadge category={service.category} />
           {service.available ? (
-            <span className="text-xs font-medium text-primary">Available</span>
+            <span className="text-xs font-medium text-primary">{t('card.available')}</span>
           ) : (
             <span className="text-xs font-medium text-muted-foreground">
-              Busy
+              {t('card.busy')}
             </span>
           )}
         </div>
@@ -33,7 +38,7 @@ export function ServiceCard({ service }: { service: Service }) {
               {service.title}
             </h3>
             <p className="text-sm text-muted-foreground">
-              by {service.providerName}
+              {locale === 'uz' ? service.providerName : `${t('card.by')} ${service.providerName}`}
             </p>
           </div>
         </div>
@@ -57,14 +62,14 @@ export function ServiceCard({ service }: { service: Service }) {
 
       <CardFooter className="flex items-center justify-between gap-3 border-t border-border bg-secondary/40 px-5 py-3">
         <span className="font-heading text-base font-semibold text-foreground">
-          {formatPrice(service.price, service.priceUnit)}
+          {formatPrice(service.price, service.priceUnit, locale)}
         </span>
         <Button
           size="sm"
           nativeButton={false}
           render={<Link href={`/service/${service.serviceId}`} />}
         >
-          Order Now
+          {t('card.orderNow')}
         </Button>
       </CardFooter>
     </Card>

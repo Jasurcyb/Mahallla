@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { formatUZS } from '@/lib/categories'
+import { useLanguage } from '@/lib/language-context'
 import type { Service } from '@/types'
 
 export function OrderForm({ service }: { service: Service }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -24,7 +26,7 @@ export function OrderForm({ service }: { service: Service }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!date || !time) {
-      toast.error('Please choose a date and time.')
+      toast.error(t('order.pickDateTime'))
       return
     }
     setLoading(true)
@@ -41,10 +43,10 @@ export function OrderForm({ service }: { service: Service }) {
         }),
       })
       if (!res.ok) throw new Error('Order failed')
-      toast.success('Order placed! Track it in My Orders.')
+      toast.success(t('order.success'))
       router.push('/orders')
     } catch {
-      toast.error('Could not place the order. Please try again.')
+      toast.error(t('order.error'))
     } finally {
       setLoading(false)
     }
@@ -55,7 +57,7 @@ export function OrderForm({ service }: { service: Service }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="date" className="mb-2 block">
-            Date
+            {t('order.date')}
           </Label>
           <Input
             id="date"
@@ -67,7 +69,7 @@ export function OrderForm({ service }: { service: Service }) {
         </div>
         <div>
           <Label htmlFor="time" className="mb-2 block">
-            Time
+            {t('order.time')}
           </Label>
           <Input
             id="time"
@@ -81,7 +83,7 @@ export function OrderForm({ service }: { service: Service }) {
 
       <div>
         <Label htmlFor="quantity" className="mb-2 block">
-          Quantity
+          {t('order.quantity')}
         </Label>
         <Input
           id="quantity"
@@ -94,19 +96,19 @@ export function OrderForm({ service }: { service: Service }) {
 
       <div>
         <Label htmlFor="notes" className="mb-2 block">
-          Notes for the provider
+          {t('order.notes')}
         </Label>
         <Textarea
           id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Any special requests..."
+          placeholder={t('order.notesPlaceholder')}
           rows={3}
         />
       </div>
 
       <div className="flex items-center justify-between border-t border-border pt-4">
-        <span className="text-sm text-muted-foreground">Total</span>
+        <span className="text-sm text-muted-foreground">{t('order.total')}</span>
         <span className="font-heading text-xl font-bold text-foreground">
           {formatUZS(total)}
         </span>
@@ -116,7 +118,7 @@ export function OrderForm({ service }: { service: Service }) {
         {loading && (
           <Loader2 width={16} height={16} className="animate-spin" aria-hidden="true" />
         )}
-        Order Now
+        {t('order.orderNow')}
       </Button>
     </form>
   )

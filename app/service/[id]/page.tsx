@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, BadgeCheck, MapPin, Sparkles } from 'lucide-react'
@@ -12,12 +13,22 @@ import { OrderForm } from '@/components/order-form'
 import { formatPrice, formatUZS } from '@/lib/categories'
 import { getService, getUser, listReviews } from '@/lib/dynamodb'
 import { suggestPrice } from '@/lib/ai'
+import { getTranslator, type Locale } from '@/lib/translations'
+
+const VALID_LOCALES: Locale[] = ['en', 'ru', 'uz']
 
 export default async function ServiceDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get('lang')?.value ?? 'ru'
+  const locale: Locale = VALID_LOCALES.includes(raw as Locale)
+    ? (raw as Locale)
+    : 'ru'
+  const t = getTranslator(locale)
+
   const { id } = await params
   const service = await getService(id)
   if (!service) notFound()
@@ -41,7 +52,7 @@ export default async function ServiceDetailPage({
             className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft width={16} height={16} aria-hidden="true" />
-            Back to browse
+            {t('detail.backToBrowse')}
           </Link>
 
           <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
@@ -85,12 +96,12 @@ export default async function ServiceDetailPage({
                         width={18}
                         height={18}
                         className="text-primary"
-                        aria-label="Verified neighbor"
+                        aria-label={t('detail.verifiedNeighbor')}
                       />
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {provider?.completedOrders ?? 0} orders completed ·{' '}
-                      {(provider?.rating ?? service.rating).toFixed(1)} rating
+                      {provider?.completedOrders ?? 0} {t('detail.ordersCompleted')} ·{' '}
+                      {(provider?.rating ?? service.rating).toFixed(1)} {t('detail.rating')}
                     </p>
                   </div>
                 </CardContent>
@@ -100,7 +111,7 @@ export default async function ServiceDetailPage({
               <Card>
                 <CardHeader>
                   <CardTitle className="font-heading text-xl">
-                    About this service
+                    {t('detail.aboutService')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -120,13 +131,13 @@ export default async function ServiceDetailPage({
                     aria-hidden="true"
                   />
                   <p className="font-semibold text-foreground">
-                    AI Price Insight
+                    {t('detail.aiPriceInsight')}
                   </p>
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {isFair
-                    ? `This price is fair for your area. Similar services in ${service.city} range ${formatUZS(priceInsight.minPrice)} – ${formatUZS(priceInsight.maxPrice)}.`
-                    : `Heads up: similar services in ${service.city} typically range ${formatUZS(priceInsight.minPrice)} – ${formatUZS(priceInsight.maxPrice)}.`}
+                    ? `${t('detail.priceFair')} ${t('detail.similarServices')} ${service.city} ${t('detail.range')} ${formatUZS(priceInsight.minPrice)} – ${formatUZS(priceInsight.maxPrice)}.`
+                    : `${t('detail.priceHeadsUp')} ${t('detail.similarServices')} ${service.city} ${t('detail.range')} ${formatUZS(priceInsight.minPrice)} – ${formatUZS(priceInsight.maxPrice)}.`}
                 </p>
               </div>
 
@@ -134,13 +145,13 @@ export default async function ServiceDetailPage({
               <Card>
                 <CardHeader>
                   <CardTitle className="font-heading text-xl">
-                    Reviews ({reviews.length})
+                    {t('detail.reviews')} ({reviews.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   {reviews.length === 0 && (
                     <p className="text-sm text-muted-foreground">
-                      No reviews yet. Be the first to order!
+                      {t('detail.noReviews')}
                     </p>
                   )}
                   {reviews.map((review, i) => (
@@ -171,15 +182,15 @@ export default async function ServiceDetailPage({
                 <CardHeader>
                   <div className="flex items-baseline justify-between gap-2">
                     <CardTitle className="font-heading text-2xl">
-                      {formatPrice(service.price, service.priceUnit)}
+                      {formatPrice(service.price, service.priceUnit, locale)}
                     </CardTitle>
                     {service.available ? (
                       <span className="text-sm font-medium text-primary">
-                        Available
+                        {t('card.available')}
                       </span>
                     ) : (
                       <span className="text-sm font-medium text-muted-foreground">
-                        Currently busy
+                        {t('detail.currentlyBusy')}
                       </span>
                     )}
                   </div>

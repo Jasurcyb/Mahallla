@@ -54,7 +54,7 @@ export function PostServiceForm() {
       if (!res.ok) throw new Error('failed')
       const service = await res.json()
       setDone(true)
-      setTimeout(() => router.push(`/service/${service.serviceId}`), 1200)
+      setTimeout(() => router.push(`/service/${service.service?.id ?? service.service?.serviceId}`), 1200)
     } catch {
       setSubmitting(false)
     }

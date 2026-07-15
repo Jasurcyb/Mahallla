@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createService, listServices } from '@/lib/dynamodb'
+import { cookies } from 'next/headers'
+import { createService, listServices, getOrCreateUser } from '@/lib/dynamodb'
 import { verifySameOrigin } from '@/lib/cors'
 import {
   sanitizeString,
@@ -111,12 +112,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'available must be a boolean' }, { status: 400 })
     }
 
+    const cookieStore = await cookies()
+    const customerId = cookieStore.get('mahalla_uid')?.value
+    const user = await getOrCreateUser(customerId)
+
     // 3. Sanitization
     const title = sanitizeString(body.title, 100)
     const description = sanitizeString(body.description, 1000)
-    const providerId = body.providerId ? sanitizeString(body.providerId, 50) : 'provider-nilufar'
-    const providerName = body.providerName ? sanitizeString(body.providerName, 100) : 'You'
-    const providerAvatar = body.providerAvatar ? sanitizeString(body.providerAvatar, 200) : '/avatars/aziza.png'
+    const providerId = body.providerId ? sanitizeString(body.providerId, 50) : user.userId
+    const providerName = body.providerName ? sanitizeString(body.providerName, 100) : (user.name || 'New Neighbor')
+    const providerAvatar = body.providerAvatar ? sanitizeString(body.providerAvatar, 200) : (user.avatar || '/placeholder.svg')
     const priceUnit = body.priceUnit ? (body.priceUnit as PriceUnit) : 'fixed'
     const location = body.location ? sanitizeString(body.location, 100) : 'Markaz mahalla'
     const city = body.city ? sanitizeString(body.city, 100) : 'Fergana'

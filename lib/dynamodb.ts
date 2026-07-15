@@ -10,6 +10,8 @@ import {
 } from '@aws-sdk/lib-dynamodb'
 import { awsCredentialsProvider } from '@vercel/functions/oidc'
 import type { Order, Review, Service, User } from '@/types'
+import crypto from 'crypto'
+
 
 /**
  * Data access layer for Mahalla, backed by Amazon DynamoDB.
@@ -589,7 +591,7 @@ export async function listReviews(serviceId: string): Promise<Review[]> {
 /* ------------------------------ Orders ------------------------------- */
 
 export async function listOrders(
-  customerId = CURRENT_USER_ID,
+  customerId: string,
 ): Promise<Order[]> {
   await ensureSeeded()
   const orders = await scanByType<Order>('order')
@@ -599,17 +601,12 @@ export async function listOrders(
 }
 
 export async function createOrder(
-  input: Omit<
-    Order,
-    'orderId' | 'createdAt' | 'status' | 'customerId' | 'customerName'
-  >,
+  input: Omit<Order, 'orderId' | 'createdAt' | 'status'>,
 ): Promise<Order> {
   assertConfigured()
   const order: Order = {
     ...input,
     orderId: `ord-${Date.now()}`,
-    customerId: CURRENT_USER_ID,
-    customerName: 'Aziza Karimova',
     status: 'pending',
     createdAt: new Date().toISOString().slice(0, 10),
   }
@@ -652,7 +649,84 @@ export async function updateOrderStatus(
 
 /* ------------------------------- Users ------------------------------- */
 
-export async function getUser(userId = CURRENT_USER_ID): Promise<User | null> {
+export async function getUser(userId: string): Promise<User | null> {
   await ensureSeeded()
   return getById<User>(userId)
 }
+
+export async function getOrCreateUser(cookieUserId?: string): Promise<User> {
+  await ensureSeeded()
+  
+  if (cookieUserId) {
+    const existing = await getUser(cookieUserId)
+    if (existing) {
+      return existing
+    }
+  }
+
+  const userId = cookieUserId || crypto.randomUUID()
+  const newUser: User = {
+    userId,
+    name: '',
+    avatar: '/placeholder.svg',
+    phone: '',
+    city: '',
+    rating: 0,
+    completedOrders: 0,
+    isProvider: false,
+    categories: [],
+    joinedAt: new Date().toISOString(),
+  }
+
+  try {
+    await docClient.send(
+      new PutCommand({
+        TableName: TABLE_NAME,
+        Item: toItem('user', userId, newUser),
+      }),
+    )
+    return newUser
+  } catch (err) {
+    throw new Error('Database operation failed')
+  }
+}
+
+export async function updateUser(
+  userId: string,
+  patch: Partial<User>,
+): Promise<User | null> {
+  assertConfigured()
+  const existing = await getById<User>(userId)
+  if (!existing) return null
+
+  const fields = Object.entries(patch).filter(
+    ([key]) => key !== 'userId' && key !== 'entityType',
+  )
+  if (fields.length === 0) return existing
+
+  const names: Record<string, string> = {}
+  const values: Record<string, unknown> = {}
+  const sets: string[] = []
+  fields.forEach(([key, value], idx) => {
+    names[`#k${idx}`] = key
+    values[`:v${idx}`] = value
+    sets.push(`#k${idx} = :v${idx}`)
+  })
+
+  try {
+    const result = await docClient.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: { [PK]: userId },
+        UpdateExpression: `SET ${sets.join(', ')}`,
+        ExpressionAttributeNames: names,
+        ExpressionAttributeValues: values,
+        ReturnValues: 'ALL_NEW',
+      }),
+    )
+    return result.Attributes ? clean<User>(result.Attributes) : null
+  } catch (err) {
+    throw new Error('Database operation failed')
+  }
+}
+

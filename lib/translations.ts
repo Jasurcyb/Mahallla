@@ -217,6 +217,17 @@ const translations = {
   'profile.neighborRating': { en: 'Neighbor rating', ru: 'Рейтинг соседа', uz: "Qo'shni reytingi" },
   'profile.recommended': { en: 'Recommended for you', ru: 'Рекомендуем вам', uz: 'Siz uchun tavsiya' },
   'profile.seeAll': { en: 'See all', ru: 'Все', uz: 'Hammasini ko\'rish' },
+  'profile.edit': { en: 'Edit Profile', ru: 'Редактировать профиль', uz: 'Profilni tahrirlash' },
+  'profile.editTitle': { en: 'Edit Profile Settings', ru: 'Настройки профиля', uz: 'Profil sozlamalari' },
+  'profile.editSubtitle': { en: 'Update your contact information so neighbors can reach you.', ru: 'Обновите вашу контактную информацию, чтобы соседи могли связаться с вами.', uz: "Qo'shnilar siz bilan bog'lana olishlari uchun ma'lumotlaringizni yangilang." },
+  'profile.name': { en: 'Your Name', ru: 'Ваше имя', uz: 'Ismingiz' },
+  'profile.phone': { en: 'Phone Number', ru: 'Номер телефона', uz: 'Telefon raqami' },
+  'profile.city': { en: 'City', ru: 'Город', uz: 'Shahar' },
+  'profile.save': { en: 'Save Changes', ru: 'Сохранить изменения', uz: "O'zgarishlarni saqlash" },
+  'profile.saving': { en: 'Saving...', ru: 'Сохранение...', uz: 'Saqlanmoqda...' },
+  'profile.back': { en: 'Back to Profile', ru: 'Назад в профиль', uz: 'Profilga qaytish' },
+  'profile.isProvider': { en: 'Show as Service Provider', ru: 'Показывать как исполнителя услуг', uz: "Xizmat ko'rsatuvchi sifatida ko'rsatish" },
+  'profile.categories': { en: 'Provided Services', ru: 'Предоставляемые услуги', uz: "Ko'rsatiladigan xizmatlar" },
 
   // ─── Footer ───
   'footer.tagline': { en: 'Your neighborhood, your community.', ru: 'Ваша махалля, ваше сообщество.', uz: "Sizning mahallangiz, sizning jamoangiz." },

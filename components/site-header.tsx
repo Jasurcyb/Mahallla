@@ -5,6 +5,9 @@ import { usePathname } from 'next/navigation'
 import { Globe, Home, Plus } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import useSWR from 'swr'
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 import {
   Select,
   SelectContent,
@@ -81,8 +84,7 @@ export function SiteHeader() {
           </Button>
           <Link href="/profile" aria-label={t('nav.profile')}>
             <Avatar className="size-9 border border-border">
-              <AvatarImage src="/avatars/aziza.png" alt={t('nav.profile')} />
-              <AvatarFallback>A</AvatarFallback>
+              <AvatarFetchHelper fallback={t('nav.profile')} />
             </Avatar>
           </Link>
         </div>
@@ -111,3 +113,20 @@ export function SiteHeader() {
     </header>
   )
 }
+
+function AvatarFetchHelper({ fallback }: { fallback: string }) {
+  const { data } = useSWR<{ user: any }>('/api/user', fetcher)
+  const user = data?.user
+  if (!user) {
+    return <AvatarFallback>...</AvatarFallback>
+  }
+  const userAvatar = user.avatar || '/placeholder.svg'
+  const userInitial = user.name ? user.name.slice(0, 1).toUpperCase() : 'N'
+  return (
+    <>
+      <AvatarImage src={userAvatar} alt={user.name || fallback} />
+      <AvatarFallback>{userInitial}</AvatarFallback>
+    </>
+  )
+}
+

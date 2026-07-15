@@ -7,7 +7,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ServiceCard } from '@/components/ServiceCard'
-import { getUser, listOrders, listServices } from '@/lib/dynamodb'
+import { getOrCreateUser, listOrders, listServices } from '@/lib/dynamodb'
 import { formatUZS } from '@/lib/categories'
 import { getTranslator, type Locale } from '@/lib/translations'
 
@@ -21,13 +21,17 @@ export default async function ProfilePage() {
     : 'ru'
   const t = getTranslator(locale)
 
-  const [user, orders, services] = await Promise.all([
-    getUser(),
-    listOrders(),
+  const userId = cookieStore.get('mahalla_uid')?.value
+  const user = await getOrCreateUser(userId)
+
+  const [orders, services] = await Promise.all([
+    listOrders(user.userId),
     listServices(),
   ])
 
-  if (!user) return null
+  const displayName = user.name || (locale === 'ru' ? 'Новый сосед' : locale === 'uz' ? 'Yangi qo\'shni' : 'New Neighbor')
+  const displayPhone = user.phone || (locale === 'ru' ? 'Телефон не указан' : locale === 'uz' ? 'Telefon kiritilmagan' : 'No phone number')
+  const displayCity = user.city || (locale === 'ru' ? 'Город не указан' : locale === 'uz' ? 'Shahar kiritilmagan' : 'No city')
 
   const completed = orders.filter((o) => o.status === 'completed')
   const active = orders.filter(
@@ -45,7 +49,7 @@ export default async function ProfilePage() {
         <section className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card p-6 sm:flex-row sm:items-center">
           <Image
             src={user.avatar || '/placeholder.svg'}
-            alt={user.name}
+            alt={displayName}
             width={96}
             height={96}
             className="size-24 rounded-full object-cover"
@@ -53,7 +57,7 @@ export default async function ProfilePage() {
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-col items-center gap-2 sm:flex-row">
               <h1 className="font-heading text-2xl font-semibold text-foreground">
-                {user.name}
+                {displayName}
               </h1>
               <Badge className="gap-1 bg-primary/10 text-primary">
                 <CheckCircle2 width={13} height={13} aria-hidden="true" />
@@ -63,11 +67,11 @@ export default async function ProfilePage() {
             <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground sm:justify-start">
               <span className="flex items-center gap-1">
                 <MapPin width={14} height={14} aria-hidden="true" />
-                {user.city}
+                {displayCity}
               </span>
               <span className="flex items-center gap-1">
                 <Phone width={14} height={14} aria-hidden="true" />
-                {user.phone}
+                {displayPhone}
               </span>
               <span className="flex items-center gap-1">
                 <Star
@@ -87,13 +91,22 @@ export default async function ProfilePage() {
               })}
             </p>
           </div>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/post" />}
-          >
-            {t('profile.becomeProvider')}
-          </Button>
+          <div className="flex flex-col gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/profile/edit" />}
+            >
+              {t('profile.edit')}
+            </Button>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/post" />}
+            >
+              {t('profile.becomeProvider')}
+            </Button>
+          </div>
         </section>
 
         <section className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import {
   createOrder,
   getService,
   listOrders,
   updateOrderStatus,
+  getOrCreateUser,
 } from '@/lib/dynamodb'
 import { verifySameOrigin } from '@/lib/cors'
 import { sanitizeString, isValidId, isValidOrderStatus, isValidPositiveInteger } from '@/lib/sanitize'
@@ -15,7 +17,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const orders = await listOrders()
+    const cookieStore = await cookies()
+    const customerId = cookieStore.get('mahalla_uid')?.value
+    const customer = await getOrCreateUser(customerId)
+    const orders = await listOrders(customer.userId)
     return NextResponse.json({ orders })
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -65,7 +70,13 @@ export async function POST(request: Request) {
     const scheduledTime = sanitizeString(body.scheduledTime ?? '', 10)
     const notes = sanitizeString(body.notes ?? '', 500)
 
+    const cookieStore = await cookies()
+    const customerId = cookieStore.get('mahalla_uid')?.value
+    const customer = await getOrCreateUser(customerId)
+
     const order = await createOrder({
+      customerId: customer.userId,
+      customerName: customer.name || 'New Neighbor',
       serviceId: service.serviceId,
       serviceTitle: service.title,
       providerId: service.providerId,
